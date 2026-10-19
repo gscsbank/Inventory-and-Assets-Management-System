@@ -1,0 +1,509 @@
+/* Galapitiyagama Sanasa Bank - Inventory & Asset Management System */
+/* Custom Styles & Print Specifications */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Sinhala:wght@400;500;600;700&display=swap');
+
+:root {
+  --sanasa-blue: #02457A;
+  --sanasa-dark: #001B48;
+  --sanasa-teal: #018ABE;
+  --sanasa-light: #97CADB;
+  --sanasa-ice: #D6E8EE;
+  --sanasa-gold: #E5A93C;
+}
+
+body {
+  font-family: 'Inter', 'Noto Sans Sinhala', 'Iskoola Pota', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #f1f5f9;
+  color: #1e293b;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Pulse animation for low stock */
+@keyframes softPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.03); }
+}
+
+.pulse-alert {
+  animation: softPulse 2s infinite ease-in-out;
+}
+
+/* Glassmorphism helpers */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+/* Login Screen Animations */
+@keyframes shakeError {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-8px); }
+  40%, 80% { transform: translateX(8px); }
+}
+
+.shake-error {
+  animation: shakeError 0.4s ease-in-out;
+}
+
+@keyframes loginFadeIn {
+  from { opacity: 0; transform: scale(0.96) translateY(12px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.login-card-anim {
+  animation: loginFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* macOS Window & App Frame Styles */
+.macos-window-frame {
+  border-radius: 28px;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+
+.macos-traffic-light {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  color: transparent;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+.macos-traffic-light:hover {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+/* Next-Level Smart Card Physics & Hover Shine */
+.smart-card {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+.smart-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.12),
+    transparent
+  );
+  transition: 0.65s ease;
+  pointer-events: none;
+  z-index: 2;
+}
+.smart-card:hover::before {
+  left: 120%;
+}
+.smart-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.12), 0 8px 16px -6px rgba(0, 0, 0, 0.06);
+}
+
+/* Apple macOS Dock Magnification & Glow Pill */
+.macos-dock-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  cursor: pointer;
+  position: relative;
+  border: 1px solid transparent;
+}
+.macos-dock-icon:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+  transform: scale(1.18) translateX(3px);
+  box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.12);
+  z-index: 10;
+}
+.macos-dock-icon.active-tab {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+  transform: scale(1.08);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.35);
+}
+.macos-dock-icon.active-tab::after {
+  content: '';
+  position: absolute;
+  left: -7px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 20px;
+  background: #ea580c;
+  border-radius: 0 4px 4px 0;
+  box-shadow: 0 0 10px rgba(234, 88, 12, 0.6);
+  animation: glowPill 2s infinite ease-in-out;
+}
+@keyframes glowPill {
+  0%, 100% { opacity: 0.8; height: 18px; filter: drop-shadow(0 0 4px #ea580c); }
+  50% { opacity: 1; height: 24px; filter: drop-shadow(0 0 8px #ea580c); }
+}
+
+/* Smooth Tab Entrance Animation */
+@keyframes tabFadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.tab-pane:not(.hidden) {
+  animation: tabFadeInUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Chart Bars Grow-up Animation */
+@keyframes barGrowUp {
+  0% {
+    transform: scaleY(0);
+    opacity: 0.1;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+.animated-bar {
+  transform-origin: bottom;
+  animation: barGrowUp 0.75s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Glowing Pulse Rings for Active Sparkline Point */
+@keyframes pulseGlowRing {
+  0% { transform: scale(0.9); opacity: 0.9; }
+  50% { transform: scale(1.6); opacity: 0; }
+  100% { transform: scale(0.9); opacity: 0; }
+}
+.pulse-glow-ring {
+  transform-origin: center;
+  animation: pulseGlowRing 2.4s infinite ease-out;
+}
+
+/* Patterned Hatched Vertical Bar Styles (matching the image) */
+.bar-hatched-pattern {
+  background: repeating-linear-gradient(
+    -45deg,
+    #ffffff,
+    #ffffff 2.5px,
+    #18181b 2.5px,
+    #18181b 5px
+  );
+  border: 1.5px solid #18181b;
+}
+
+.bar-hatched-orange {
+  background: repeating-linear-gradient(
+    -45deg,
+    #ffffff,
+    #ffffff 2.5px,
+    #ea580c 2.5px,
+    #ea580c 5px
+  );
+  border: 1.5px solid #ea580c;
+}
+
+/* Smart Table Row Interaction */
+.smart-table-row {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.smart-table-row:hover {
+  background-color: #f8fafc !important;
+  transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* 50mm x 25mm Thermal Barcode Roll Label Styles (Direct Thermal Roll) */
+.thermal-50x25-label {
+  width: 50mm;
+  height: 25mm;
+  min-width: 50mm;
+  min-height: 25mm;
+  max-width: 50mm;
+  max-height: 25mm;
+  box-sizing: border-box;
+  padding: 1.2mm 3.5mm 1.2mm 3.5mm;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  color: #000000;
+  overflow: hidden;
+  border-radius: 3px;
+  position: relative;
+  page-break-after: always;
+  break-after: page;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.thermal-50x25-label.preview-mode {
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  page-break-after: auto;
+  border-radius: 4px;
+}
+
+.thermal-label-header {
+  font-size: 6.5pt;
+  font-weight: 800;
+  text-align: center;
+  text-transform: uppercase;
+  line-height: 1.1;
+  width: 100%;
+  border-bottom: 0.5px solid #000;
+  padding-bottom: 0.2mm;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Nirmala UI", sans-serif;
+  color: #000;
+}
+
+.thermal-label-title {
+  font-size: 6.8pt;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.15;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 0.2mm;
+  margin-bottom: 0.1mm;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Nirmala UI", sans-serif;
+  color: #000;
+}
+
+.thermal-barcode-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 8.5mm;
+  overflow: hidden;
+  margin: 0;
+}
+
+.thermal-barcode-wrapper svg {
+  max-width: 42mm;
+  height: 8mm;
+  display: block;
+}
+
+.thermal-label-footer {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 6pt;
+  line-height: 1;
+  border-top: 0.5px solid #000;
+  padding-top: 0.2mm;
+  margin-top: 0.1mm;
+  color: #000;
+}
+
+.thermal-barcode-text {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  font-size: 6.2pt;
+}
+
+.thermal-barcode-sub {
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 22mm;
+  text-align: right;
+  font-size: 5.8pt;
+}
+
+/* Realistic Thermal Roll Strip Simulation (Matching real-life photo) */
+.thermal-roll-strip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #e2e8f0;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 16px 14px;
+  width: fit-content;
+  margin: 0 auto;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08), inset 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.thermal-roll-item-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.thermal-roll-gap {
+  height: 4mm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  user-select: none;
+}
+
+.thermal-roll-gap-line {
+  border-top: 1px dashed #cbd5e1;
+  width: 50mm;
+}
+
+/* Barcode printable card (legacy / A4 sheet) */
+.barcode-card {
+  width: 65mm;
+  height: 38mm;
+  border: 1px dashed #94a3b8;
+  padding: 2mm 3mm;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  border-radius: 4px;
+  page-break-inside: avoid;
+  box-sizing: border-box;
+}
+
+.barcode-card svg, .barcode-card img {
+  max-width: 100%;
+  max-height: 20mm;
+}
+
+/* Label grid for printing */
+.label-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(65mm, 1fr));
+  gap: 4mm;
+  width: 100%;
+}
+
+/* ========================================================
+   PRINT SPECIFIC STYLES (A4 OFFICIAL REPORT & BARCODE LABELS)
+   ======================================================== */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 11pt;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Hide entire interactive app chrome and modals */
+  body > *:not(#printableArea),
+  header, nav, aside, main, .no-print, button, .modal-backdrop, .tab-nav, #sidebar, #topNav, #actionToolbar, .toast-container,
+  #itemModal, #viewBarcodeModal, #stockInOutModal, #mainContent {
+    display: none !important;
+  }
+
+  .print-only-container, #printableArea {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* High contrast table borders for clean printing */
+  .report-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9pt;
+  }
+
+  .report-table th, .report-table td {
+    border: 1px solid #475569 !important;
+    padding: 4px 6px !important;
+    color: black !important;
+  }
+
+  .report-table th {
+    background-color: #f8fafc !important;
+    font-weight: 700 !important;
+    text-align: center;
+  }
+
+  .page-break-inside-avoid {
+    page-break-inside: avoid;
+  }
+
+  .page-break-before {
+    page-break-before: always;
+  }
+
+  /* 50mm x 25mm Thermal Barcode Roll Print */
+  .thermal-50x25-label {
+    border: none !important;
+    box-shadow: none !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .thermal-50x25-label:last-child {
+    page-break-after: auto !important;
+    break-after: auto !important;
+  }
+
+  /* Barcode sheet print layout */
+  .label-print-container {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 3mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .barcode-card {
+    border: 1px solid #000 !important;
+    box-shadow: none !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Official signature box formatting */
+  .signatures-section {
+    page-break-inside: avoid;
+    margin-top: 25px;
+  }
+}

@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Galapitiyagama Sanasa Bank - Inventory & Asset Management System</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            sanasa: {
+              50: '#f0f7fc',
+              100: '#e0eff9',
+              500: '#018abe',
+              800: '#02457a',
+              900: '#001b48',
+              gold: '#e5a93c'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Barcode & QR Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  
+  <!-- PDF.js for SmartCoop PDF Import -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+  </script>
+
+  <!-- Custom Stylesheet with Print Layout -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="h-screen w-screen overflow-hidden bg-slate-100 flex flex-col antialiased select-none font-sans m-0 p-0">
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="fixed top-5 right-5 z-[10001] flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- LOGIN SCREEN OVERLAY -->
+  <div id="loginScreenOverlay" class="fixed inset-0 z-[10000] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+    <!-- Ambient glowing backdrop blobs -->
+    <div class="absolute w-96 h-96 bg-blue-600/20 rounded-full blur-3xl pointer-events-none -top-20 -left-20 animate-pulse"></div>
+    <div class="absolute w-96 h-96 bg-[#ea580c]/15 rounded-full blur-3xl pointer-events-none -bottom-20 -right-20"></div>
+
+    <!-- Login Modal Box -->
+    <div id="loginCard" class="login-card-anim relative w-full max-w-md bg-white/95 backdrop-blur-xl border border-slate-200/80 rounded-3xl shadow-2xl p-7 sm:p-9 text-slate-800">
+      
+      <!-- Top Branding -->
+      <div class="flex flex-col items-center text-center mb-6">
+        <div class="w-24 h-24 bg-white rounded-3xl border border-slate-200 shadow-md flex items-center justify-center p-3 mb-3">
+          <img src="logo.png" alt="GSCS Logo" class="h-16 w-auto max-w-full max-h-full object-contain" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fas fa-university text-4xl text-blue-700\'></i>';">
+        </div>
+        <div class="flex items-center gap-2">
+          <h2 class="text-xl font-extrabold tracking-tight text-slate-900">GSCS Bank</h2>
+          <span class="text-[10px] font-bold tracking-widest uppercase bg-amber-50 text-amber-700 border border-amber-300 px-2 py-0.5 rounded-full">
+            ගලපිටියාගම සණස
+          </span>
+        </div>
+        <p class="text-xs text-slate-500 mt-1 font-medium">සීමා සහිත ගලපිටියාගම සකසුරුවම් හා ණය සමූපකාර සමිතිය</p>
+        <div class="mt-2 text-[11px] font-bold text-blue-700 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+          <i class="fas fa-shield-alt mr-1"></i> Inventory &amp; Asset Management
+        </div>
+      </div>
+
+      <!-- Login Form -->
+      <form id="loginForm" onsubmit="handleLoginSubmit(event)" class="space-y-4">
+        <!-- Error Alert -->
+        <div id="loginErrorMsg" class="hidden p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center gap-2">
+          <i class="fas fa-exclamation-circle text-rose-500 text-sm shrink-0"></i>
+          <span id="loginErrorText">වැරදි පරිශීලක නාමයක් හෝ මුරපදයක්!</span>
+        </div>
+
+        <!-- Username Input -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5" for="loginUsername">
+            පරිශීලක නාමය (Username)
+          </label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+              <i class="fas fa-user text-xs"></i>
+            </span>
+            <input type="text" id="loginUsername" required autocomplete="username" placeholder="Username" class="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all">
+          </div>
+        </div>
+
+        <!-- Password Input -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5" for="loginPassword">
+            මුරපදය (Password)
+          </label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+              <i class="fas fa-lock text-xs"></i>
+            </span>
+            <input type="password" id="loginPassword" required autocomplete="current-password" placeholder="Password" class="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all">
+            <button type="button" onclick="togglePasswordVisibility()" class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600 focus:outline-none">
+              <i id="passwordToggleIcon" class="fas fa-eye text-xs"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Remember Me -->
+        <div class="flex items-center justify-between text-xs pt-1">
+          <label class="flex items-center gap-2 cursor-pointer select-none text-slate-600">
+            <input type="checkbox" id="loginRememberMe" checked class="w-4 h-4 rounded text-blue-600 border-slate-300 focus:ring-blue-500">
+            <span>Remember login</span>
+          </label>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" id="loginSubmitBtn" class="w-full mt-2 py-3 bg-[#02457a] hover:bg-[#001b48] active:scale-[0.99] text-white rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer">
+          <span>පිවිසෙන්න (Sign In)</span>
+          <i class="fas fa-arrow-right text-xs"></i>
+        </button>
+      </form>
+
+      <!-- Footer Info -->
+      <div class="mt-6 pt-4 border-t border-slate-100 text-center">
+        <p class="text-[10px] text-slate-400 font-medium">
+          Galapitiyagama Sanasa Co-operative Society &bull; Developed by <span class="text-slate-600 font-bold">iraasoftsolution</span>
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FULL PAGE APP FRAME (Edge-to-Edge) -->
+  <div class="w-full h-screen flex flex-col bg-white overflow-hidden">
+
+    <!-- Top App Header Bar -->
+    <header class="bg-white border-b border-slate-200/80 px-4 sm:px-6 py-2.5 flex items-center justify-between shrink-0 select-none">
+      
+      <!-- Left: Bank Logo & Title -->
+      <div class="flex items-center gap-3">
+        <!-- Bank Logo & Title (Matching Image 1) -->
+        <div class="p-1 bg-white rounded-xl border border-slate-200 shadow-xs flex items-center justify-center shrink-0">
+          <img src="logo.png" alt="GSCS Logo" class="h-8 w-auto object-contain">
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-sm sm:text-base font-extrabold tracking-tight text-slate-800 leading-tight">GSCS Bank</span>
+            <span class="text-[10px] font-bold tracking-widest uppercase bg-sanasa-gold/25 text-yellow-600 px-2 py-0.5 rounded-full border border-yellow-400/30">
+              ගලපිටියාගම සණස
+            </span>
+          </div>
+          <div class="text-[10px] font-bold tracking-wider uppercase text-slate-400">
+            Retail &amp; Asset Inventory
+          </div>
+        </div>
+      </div>
+
+      <!-- Center: macOS Search Bar -->
+      <div class="relative w-44 sm:w-64 md:w-80 hidden sm:block">
+        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+        <input type="text" id="topMacosSearchInput" oninput="if(document.getElementById('itemSearchInput')){document.getElementById('itemSearchInput').value=this.value;AppState.searchTerm=this.value;renderItemsTable();}" placeholder="Search inventory, barcodes, divisions..." class="w-full pl-8 pr-3 py-1.5 bg-slate-100 hover:bg-slate-200/60 focus:bg-white border border-transparent focus:border-blue-500 rounded-xl text-xs outline-none transition-all">
+      </div>
+
+      <!-- Right: Currency, Alerts & Actions -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Cloud Sync Header Status -->
+        <div id="cloudSyncHeaderBadge" onclick="switchTab('settings')" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl text-[11px] font-medium text-slate-500 cursor-pointer transition-all" title="Google Sheets Cloud Sync Status">
+          <i id="cloudSyncHeaderIcon" class="fas fa-cloud text-slate-400"></i>
+          <span id="cloudSyncHeaderText">Local Only</span>
+        </div>
+
+        <!-- Currency Pill -->
+        <div class="hidden md:flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 border border-slate-200 rounded-xl text-xs font-bold text-slate-700">
+          <i class="fas fa-rupee-sign text-blue-600 text-[11px]"></i>
+          <span>LKR</span>
+          <i class="fas fa-chevron-down text-[9px] text-slate-400"></i>
+        </div>
+
+        <!-- Low Stock Alert Bell -->
+        <button onclick="switchTab('lowstock')" class="relative p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors" title="Low Stock Alerts">
+          <i class="fas fa-bell text-sm"></i>
+          <span id="lowStockCountBadge" class="hidden absolute -top-1 -right-1 min-w-[16px] h-4 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 border-2 border-white">
+            0
+          </span>
+        </button>
+
+        <!-- Admin Profile & Logout -->
+        <div class="flex items-center gap-2 pl-2 border-l border-slate-200">
+          <div class="w-7 h-7 rounded-full bg-[#02457a] text-white font-extrabold text-[11px] flex items-center justify-center shadow-xs">
+            AD
+          </div>
+          <div class="hidden xl:block text-left">
+            <div id="headerUserName" class="text-[11px] font-bold text-slate-800 leading-tight">Admin</div>
+            <div class="text-[9px] text-emerald-600 font-semibold flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Online
+            </div>
+          </div>
+          <button onclick="handleLogout()" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all cursor-pointer ml-0.5" title="Logout (පද්ධතියෙන් ඉවත් වන්න)">
+            <i class="fas fa-sign-out-alt text-xs"></i>
+          </button>
+        </div>
+
+        <!-- Add Item Button -->
+        <button onclick="openAddItemModal()" class="px-3.5 py-1.5 bg-[#ea580c] hover:bg-[#c2410c] text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center gap-1.5">
+          <i class="fas fa-plus text-[10px]"></i>
+          <span>Add Item</span>
+        </button>
+      </div>
+
+    </header>
+
+    <!-- macOS Body: Left Dock + Main Workspace -->
+    <div class="flex flex-1 overflow-hidden">
+
+      <!-- LEFT FLOATING DOCK / SIDEBAR (Matching uploaded image) -->
+      <aside class="w-16 sm:w-18 bg-[#fafbfc] border-r border-slate-200/90 py-4 px-2 flex flex-col items-center justify-between shrink-0 select-none">
+        
+        <!-- Top Nav Icons -->
+        <div class="flex flex-col items-center gap-2.5 w-full">
+          <button data-tab="dashboard" class="macos-dock-icon nav-btn active-tab" onclick="switchTab('dashboard')" title="Dashboard (පුවරුව)">
+            <i class="fas fa-th-large text-base"></i>
+          </button>
+
+          <button data-tab="items" class="macos-dock-icon nav-btn" onclick="switchTab('items')" title="Inventory & Assets (භාණ්ඩ ලැයිස්තුව)">
+            <i class="fas fa-box-open text-base"></i>
+          </button>
+
+          <button data-tab="barcode" class="macos-dock-icon nav-btn" onclick="switchTab('barcode')" title="Barcode Label Roll (බාර්කෝඩ් ලේබල්)">
+            <i class="fas fa-barcode text-base"></i>
+          </button>
+
+          <button data-tab="scanner" class="macos-dock-icon nav-btn" onclick="switchTab('scanner')" title="Barcode Scanner (ස්කෑනරය)">
+            <i class="fas fa-camera text-base"></i>
+          </button>
+
+          <button data-tab="lowstock" class="macos-dock-icon nav-btn relative" onclick="switchTab('lowstock')" title="Low Stock Alerts (අඩු තොග ඇඟවීම්)">
+            <i class="fas fa-exclamation-triangle text-base text-amber-500"></i>
+            <span id="navLowStockBadge" class="hidden absolute top-2 right-2 w-2 h-2 rounded-full bg-rose-500"></span>
+          </button>
+
+          <button data-tab="import" class="macos-dock-icon nav-btn" onclick="switchTab('import')" title="SmartCoop PDF Import (ආනයනය)">
+            <i class="fas fa-file-import text-base text-teal-600"></i>
+          </button>
+
+          <button data-tab="transactions" class="macos-dock-icon nav-btn" onclick="switchTab('transactions')" title="Stock Movement (තොග හුවමාරු)">
+            <i class="fas fa-exchange-alt text-base text-emerald-600"></i>
+          </button>
+
+          <button data-tab="reports" class="macos-dock-icon nav-btn" onclick="switchTab('reports')" title="Official A4 Reports (වාර්තා)">
+            <i class="fas fa-print text-base text-blue-600"></i>
+          </button>
+        </div>
+
+        <!-- Bottom Settings Icon -->
+        <div class="flex flex-col items-center gap-2 w-full pt-3 border-t border-slate-200">
+          <button data-tab="settings" class="macos-dock-icon nav-btn" onclick="switchTab('settings')" title="Settings & Backup (සැකසුම්)">
+            <i class="fas fa-cog text-base"></i>
+          </button>
+        </div>
+
+      </aside>
+
+      <!-- MAIN APP WORKSPACE CONTAINER -->
+      <main id="mainContent" class="flex-1 bg-[#f4f6f8] overflow-y-auto p-4 sm:p-6 lg:p-7">
+
+        <!-- TAB 1: MODERN MAC-OS DASHBOARD (Exact Match to Uploaded Image) -->
+        <div id="tab-dashboard" class="tab-pane space-y-5">
+
+          <!-- ROW 1: THE 3 SIGNATURE STAT CARDS (Dark Slate, Vibrant Orange, Clean White) -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-5">
+
+            <!-- Card 1: Dark Slate Card (Total Orders / Valuation) -->
+            <div class="smart-card bg-[#18181b] text-white rounded-3xl p-5 sm:p-6 shadow-md flex flex-col justify-between relative overflow-hidden min-h-[190px]">
+              <div>
+                <div class="text-xs text-slate-400 font-semibold">
+                  <span>Total Net Valuation</span>
+                </div>
+                <div class="flex items-baseline gap-2 mt-2">
+                  <span id="statNetValue" class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white font-mono">
+                    Rs. 0.00
+                  </span>
+                  <span class="text-xs text-rose-400 font-bold flex items-center">
+                    <i class="fas fa-arrow-down-right text-[10px] mr-0.5"></i> 10%
+                  </span>
+                </div>
+                <div class="text-[11px] text-slate-400 mt-0.5 font-medium">
+                  SmartCoop Audited Book Value
+                </div>
+              </div>
+
+              <!-- Sparkline Wave Curve with Date Markers & Tooltip Tag -->
+              <div class="mt-4 pt-2 relative">
+                <!-- SVG Wave Line -->
+                <svg class="w-full h-12 overflow-visible" viewBox="0 0 300 50" fill="none">
+                  <path d="M 0 35 C 40 40, 70 20, 110 30 C 150 40, 190 10, 230 20 C 270 30, 290 25, 300 25" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                  <circle cx="230" cy="20" r="4.5" fill="#ffffff" />
+                  <circle cx="230" cy="20" r="10" stroke="#ffffff" stroke-width="1.5" class="pulse-glow-ring" opacity="0.6" fill="none" />
+                </svg>
+
+                <!-- Floating Tooltip Pill Tag on Top of Dot -->
+                <div class="absolute -top-3 right-10 bg-white text-slate-900 text-[10px] font-extrabold px-2 py-0.5 rounded-md shadow-md animate-bounce">
+                  Active
+                </div>
+
+                <!-- Date Markers -->
+                <div class="flex items-center justify-between text-[10px] text-slate-400 font-mono mt-1">
+                  <span>1Feb</span>
+                  <span>8Feb</span>
+                  <span>16Feb</span>
+                  <span>25Feb</span>
+                  <span>30Feb</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 2: Vibrant Bright Orange Card (Total Assets) -->
+            <div class="smart-card bg-[#ff4b26] text-white rounded-3xl p-5 sm:p-6 shadow-md flex flex-col justify-between min-h-[190px]">
+              <div>
+                <div class="text-xs text-white/90 font-semibold">
+                  <span>Total Registered Assets</span>
+                </div>
+                <div class="flex items-baseline gap-2 mt-2">
+                  <span id="statTotalItems" class="text-3xl font-extrabold tracking-tight text-white">
+                    0
+                  </span>
+                  <span class="text-xs text-white font-bold bg-white/20 px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <i class="fas fa-arrow-trend-up text-[9px]"></i> +79%
+                  </span>
+                </div>
+                <div class="text-[11px] text-white/90 mt-0.5">
+                  Across 5 Official Bank Divisions
+                </div>
+              </div>
+
+              <!-- Segmented Split Boxes (White & Black matching image) -->
+              <div class="mt-4">
+                <div class="flex rounded-xl overflow-hidden h-10 shadow-xs border border-white/20">
+                  <div class="bg-white text-slate-900 font-extrabold text-xs flex items-center justify-center transition-all" style="width: 77%;">
+                    <span id="dashOadPctBadge">94%</span>
+                  </div>
+                  <div class="bg-[#18181b] text-white font-extrabold text-xs flex items-center justify-center transition-all" style="width: 23%;">
+                    <span id="dashOtherPctBadge">6%</span>
+                  </div>
+                </div>
+                <div class="flex items-center justify-between text-[11px] text-white font-medium mt-2">
+                  <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-white"></span> OAD Core Assets</span>
+                  <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-[#18181b]"></span> Other Divisions</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 3: Crisp Clean White Card (Total Physical Stock) -->
+            <div class="smart-card bg-white text-slate-800 rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between min-h-[190px]">
+              <div>
+                <div class="text-xs text-slate-500 font-semibold">
+                  <span>Total Physical Stock</span>
+                </div>
+                <div class="flex items-baseline gap-2 mt-2">
+                  <span id="statTotalQty" class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+                    0
+                  </span>
+                  <span class="text-xs text-emerald-600 font-bold flex items-center">
+                    <i class="fas fa-arrow-trend-up text-[10px] mr-0.5"></i> +21%
+                  </span>
+                </div>
+                <div class="text-[11px] text-slate-400 mt-0.5 font-medium">
+                  Verified stock on premises
+                </div>
+              </div>
+
+              <!-- Mini Calendar Bar Grid Preview (matching image) -->
+              <div class="mt-4 pt-2 border-t border-slate-100 relative">
+                <!-- Highlighted Tooltip Tag -->
+                <div class="absolute -top-3.5 right-12 bg-[#18181b] text-white text-[9px] font-bold px-2 py-0.5 rounded shadow-xs">
+                  Active
+                </div>
+
+                <!-- 7 Daily Mini Bars -->
+                <div class="grid grid-cols-7 gap-1.5 items-end h-8">
+                  <div class="bg-slate-200 rounded-sm h-3"></div>
+                  <div class="bg-slate-200 rounded-sm h-4"></div>
+                  <div class="bg-slate-200 rounded-sm h-5"></div>
+                  <div class="bg-slate-200 rounded-sm h-4"></div>
+                  <div class="bg-[#18181b] rounded-sm h-7"></div>
+                  <div class="bg-slate-200 rounded-sm h-4"></div>
+                  <div class="bg-slate-200 rounded-sm h-3"></div>
+                </div>
+
+                <!-- Day Labels -->
+                <div class="grid grid-cols-7 gap-1.5 text-center text-[9px] text-slate-400 font-mono mt-1">
+                  <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span class="font-bold text-slate-700">Fri</span><span>Sat</span><span>Sun</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- ROW 2: MIDDLE ANALYTICS (Left: Patterned Division Bar Chart 67% | Right: Top Categories Donut 33%) -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-5">
+
+            <!-- Left: Division Asset Distribution Bar Chart (67% - 8 Cols) -->
+            <div class="lg:col-span-8 smart-card bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <div>
+                    <h3 class="text-sm sm:text-base font-extrabold text-slate-800">
+                      Division Asset Distribution (අංශ අනුව වත්කම්)
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Asset count and status across official bank divisions</p>
+                  </div>
+                  <div class="flex items-center gap-3 text-xs">
+                    <span class="flex items-center gap-1.5 text-slate-500 font-medium">
+                      <span class="w-2.5 h-2.5 rounded-full border border-slate-800"></span> Qty
+                    </span>
+                    <span class="flex items-center gap-1.5 text-slate-900 font-bold">
+                      <span class="w-2.5 h-2.5 rounded-full bg-[#18181b]"></span> Valuation
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Division Bars Container with Signature Striped/Hatched Pattern -->
+                <div id="topMacosDivisionBars" class="mt-6 flex items-end justify-around gap-2 sm:gap-4 h-44 px-2 pb-2 border-b border-slate-100 relative">
+                  <!-- Rendered dynamically by JS -->
+                </div>
+              </div>
+
+              <!-- Division Names below chart -->
+              <div id="topMacosDivisionLabels" class="flex justify-around text-center text-xs font-bold text-slate-600 pt-2 font-mono">
+                <!-- Rendered by JS -->
+              </div>
+            </div>
+
+            <!-- Right: Top Categories Circular Donut / Polar Slices (33% - 4 Cols) -->
+            <div class="lg:col-span-4 smart-card bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between pb-2 border-b border-slate-100 mb-3">
+                  <h3 class="text-sm sm:text-base font-extrabold text-slate-800 flex items-center gap-1.5">
+                    <span>Top categories</span>
+                  </h3>
+                  <i class="fas fa-arrow-up-right text-xs text-slate-400 cursor-pointer" onclick="switchTab('items')"></i>
+                </div>
+
+                <!-- Circular Polar / Donut Slices Chart (Exact match to image) -->
+                <div class="flex items-center justify-center my-3 relative">
+                  <svg class="w-44 h-44 transform -rotate-90" viewBox="0 0 100 100">
+                    <!-- Slice 1: Buildings (35% - Dark Black) -->
+                    <circle cx="50" cy="50" r="38" stroke="#18181b" stroke-width="15" stroke-dasharray="77 220" stroke-dashoffset="0" fill="none" class="transition-all duration-500 hover:opacity-80"/>
+                    <!-- Slice 2: Office Equipment (23% - Vibrant Orange) -->
+                    <circle cx="50" cy="50" r="38" stroke="#ff4b26" stroke-width="15" stroke-dasharray="50 220" stroke-dashoffset="-80" fill="none" class="transition-all duration-500 hover:opacity-80"/>
+                    <!-- Slice 3: Nameboards (20% - Soft Orange / Amber) -->
+                    <circle cx="50" cy="50" r="38" stroke="#f97316" stroke-width="15" stroke-dasharray="44 220" stroke-dashoffset="-133" fill="none" class="transition-all duration-500 hover:opacity-80"/>
+                    <!-- Slice 4: Stationery (12% - Light Grey) -->
+                    <circle cx="50" cy="50" r="38" stroke="#cbd5e1" stroke-width="15" stroke-dasharray="26 220" stroke-dashoffset="-180" fill="none" class="transition-all duration-500 hover:opacity-80"/>
+                    <!-- Slice 5: Others (10% - Subtle Slate) -->
+                    <circle cx="50" cy="50" r="38" stroke="#e2e8f0" stroke-width="15" stroke-dasharray="22 220" stroke-dashoffset="-208" fill="none"/>
+                  </svg>
+                  <!-- Center Percentage Badge -->
+                  <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <span id="statCategoriesCount" class="text-sm font-extrabold text-slate-800">4 Cats</span>
+                    <span class="text-[9px] text-slate-400 font-bold uppercase">SmartCoop</span>
+                  </div>
+                </div>
+
+                <!-- Legend matching image -->
+                <div class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] text-slate-600 font-medium mb-3">
+                  <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#18181b]"></span> Buildings 35%</span>
+                  <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#ff4b26]"></span> Equipment 23%</span>
+                  <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#f97316]"></span> Nameboards 20%</span>
+                  <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-slate-300"></span> Stationery 12%</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- ROW 3: BOTTOM GRID (Left: Product Sales Table 67% | Right: Division Share & Export Button 33%) -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-5">
+
+            <!-- Left: Product Sales & Asset Table (67% - 8 Cols) -->
+            <div class="lg:col-span-8 smart-card bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+                  <h3 class="text-sm sm:text-base font-extrabold text-slate-800">
+                    Product sales (භාණ්ඩ ලැයිස්තුව)
+                  </h3>
+                  <i class="fas fa-arrow-up-right text-xs text-slate-400 cursor-pointer" onclick="switchTab('items')" title="View All Items"></i>
+                </div>
+
+                <!-- Table Header & Body -->
+                <div class="overflow-x-auto">
+                  <table class="w-full text-left border-collapse">
+                    <thead>
+                      <tr class="text-[11px] font-semibold text-slate-400 border-b border-slate-100">
+                        <th class="py-2.5 px-3">Item</th>
+                        <th class="py-2.5 px-3 text-center">Stock</th>
+                        <th class="py-2.5 px-3 text-right">Cost price</th>
+                        <th class="py-2.5 px-3 text-center">Status</th>
+                        <th class="py-2.5 px-3 text-right">Net Value</th>
+                        <th class="py-2.5 px-3 text-center">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody id="dashboardRecentAssetsTable" class="divide-y divide-slate-100 text-xs">
+                      <!-- Rendered by JS -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Division Share Chart & Dark Export Button (33% - 4 Cols) -->
+            <div class="lg:col-span-4 smart-card bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+                  <h3 class="text-sm sm:text-base font-extrabold text-slate-800">
+                    Division share (අංශ බෙදීයාම)
+                  </h3>
+                  <i class="fas fa-arrow-up-right text-xs text-slate-400 cursor-pointer" onclick="switchTab('items')"></i>
+                </div>
+
+                <!-- Division Vertical Bars with percentages -->
+                <div id="divisionShareBars" class="flex items-end justify-around gap-2 h-36 px-2 pb-2 border-b border-slate-100">
+                  <!-- Rendered dynamically by JS -->
+                </div>
+                <div id="divisionShareLabels" class="flex justify-around text-center text-[10px] font-bold text-slate-500 pt-1 font-mono">
+                  <!-- Rendered by JS -->
+                </div>
+              </div>
+
+              <!-- Full-width Dark Export Statistics Button (matching image) -->
+              <button onclick="exportToCsv()" class="w-full mt-4 py-3 bg-[#18181b] hover:bg-black text-white rounded-2xl font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2">
+                <i class="fas fa-arrow-down text-xs"></i>
+                <span>Export statistics (Excel / CSV)</span>
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+
+    <!-- TAB 2: ITEMS DIRECTORY -->
+    <div id="tab-items" class="tab-pane hidden space-y-4">
+      
+      <!-- Filter & Action Bar -->
+      <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm space-y-3">
+        <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+          
+          <!-- Search input -->
+          <div class="relative flex-1">
+            <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+            <input type="text" id="itemSearchInput" placeholder="Search by item name, barcode, location, or notes..." class="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all">
+          </div>
+
+          <!-- Division filter -->
+          <select id="divisionFilterSelect" class="py-2 px-3 text-xs sm:text-sm bg-blue-50/70 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 font-bold">
+            <option value="all">🏢 All Divisions (සියලු අංශ)</option>
+          </select>
+
+          <!-- Category filter -->
+          <select id="categoryFilterSelect" class="py-2 px-3 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-700 font-medium">
+            <option value="all">All Categories</option>
+            <option value="ගොඩනැගිලි විස්තර">Buildings (ගොඩනැගිලි විස්තර)</option>
+            <option value="නාම පුවරු විස්තර">Nameboards (නාම පුවරු විස්තර)</option>
+            <option value="කාර්යාල උපකරණ">Office Equipment (කාර්යාල උපකරණ)</option>
+            <option value="ලිපිද්‍රව්‍ය හා පරිභෝජන තොග">Stationery & Consumables (ලිපිද්‍රව්‍ය)</option>
+          </select>
+
+          <!-- Stock Status filter -->
+          <select id="stockStatusFilterSelect" class="py-2 px-3 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-700 font-medium">
+            <option value="all">All Stock Statuses</option>
+            <option value="low">Low Stock (Needs Re-order)</option>
+            <option value="out">Out of Stock (Zero Qty)</option>
+            <option value="ok">Healthy In Stock</option>
+          </select>
+
+        </div>
+
+        <!-- Division Quick Filter Tabs / Pills -->
+        <div class="pt-2.5 border-t border-slate-100">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+              <i class="fas fa-sitemap text-blue-600"></i> Filter by Division (අංශය අනුව තෝරන්න):
+            </span>
+            <span id="activeDivisionBadge" class="text-[11px] font-bold text-blue-800 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
+              All Divisions (සියල්ල)
+            </span>
+          </div>
+          <div id="divisionPillsBar" class="flex flex-wrap items-center gap-1.5">
+            <!-- Populated dynamically via JS -->
+          </div>
+        </div>
+
+        <!-- Secondary Batch Actions -->
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs">
+          <div class="flex items-center gap-2 text-slate-600">
+            <span class="font-medium">Selected for Labels:</span>
+            <span id="selectedLabelCountBadge" class="font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">0</span>
+            <button onclick="switchTab('barcode')" class="ml-2 text-blue-600 hover:text-blue-800 font-semibold underline flex items-center gap-1">
+              <i class="fas fa-barcode"></i> Print Barcode Labels for Selected &rarr;
+            </button>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span class="text-slate-400">Total Filtered: <span id="filteredItemsCount" class="font-semibold text-slate-700">0</span></span>
+            <button onclick="exportToCsv()" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded font-medium transition-colors flex items-center gap-1">
+              <i class="fas fa-file-excel text-emerald-600"></i> Export Excel / CSV
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Items Table -->
+      <div class="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                <th class="p-3 text-center w-10">
+                  <input type="checkbox" onchange="toggleSelectAllFiltered(this.checked)" class="w-4 h-4 rounded text-blue-600 border-slate-300">
+                </th>
+                <th class="p-3 text-center w-12">No.</th>
+                <th class="p-3">Item Description & Barcode</th>
+                <th class="p-3">Category</th>
+                <th class="p-3 text-center">Stock Qty</th>
+                <th class="p-3 text-right">Cost (Rs.)</th>
+                <th class="p-3 text-right">Net Value (Rs.)</th>
+                <th class="p-3 text-center">Status</th>
+                <th class="p-3 text-center w-32">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="itemsTableBody" class="divide-y divide-slate-100">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TAB 3: BARCODE LABEL PRINTING CENTER (5cm x 2.5cm THERMAL STICKER ROLL) -->
+    <div id="tab-barcode" class="tab-pane hidden space-y-4">
+      <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+              <i class="fas fa-barcode text-blue-600"></i>
+              <span>Barcode Sticker Roll Printing</span>
+            </h3>
+            <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">
+              5cm × 2.5cm (50mm × 25mm) Roll
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 mt-1">
+            තනි තීරුවේ 5cm × 2.5cm ස්ටිකර් රෝල් (Direct Thermal Barcode Printer) සඳහා ලේබල් මුද්‍රණය.
+          </p>
+          <div id="barcodeSelectedCount" class="text-xs font-semibold text-blue-700 mt-1.5 flex items-center gap-2"></div>
+        </div>
+
+        <!-- Print Action Buttons & Settings -->
+        <div class="flex flex-wrap items-center gap-2.5">
+          <div class="flex items-center gap-1.5 bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-200 text-xs">
+            <span class="text-blue-900 font-bold">අංශය:</span>
+            <select id="rollDivisionSelect" onchange="filterBarcodeRollByDivision(this.value)" class="bg-white border border-blue-300 rounded px-2 py-1 font-bold text-blue-950 text-xs focus:ring-1 focus:ring-blue-500">
+              <option value="all">සියලු අංශ (All Divisions)</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 text-xs">
+            <span class="text-slate-600 font-medium">පිටපත්:</span>
+            <select id="rollCopiesSelect" class="bg-white border border-slate-300 rounded px-2 py-1 font-bold text-slate-800 text-xs focus:ring-1 focus:ring-blue-500">
+              <option value="1">1 බැගින් (1 copy each)</option>
+              <option value="stock">තොග ප්‍රමාණයට සමානව (Match Stock Qty)</option>
+              <option value="2">2 බැගින් (2 copies)</option>
+              <option value="3">3 බැගින් (3 copies)</option>
+              <option value="5">5 බැගින් (5 copies)</option>
+              <option value="10">10 බැගින් (10 copies)</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 text-xs">
+            <span class="text-slate-600 font-medium">දිශාව:</span>
+            <select id="rollOrientationSelect" class="bg-white border border-slate-300 rounded px-2 py-1 font-bold text-slate-800 text-xs focus:ring-1 focus:ring-blue-500">
+              <option value="landscape">Landscape (තිරස් - නියම දිශාව)</option>
+              <option value="portrait">Portrait (සිරස්)</option>
+            </select>
+          </div>
+
+          <button onclick="printRollLabels()" class="px-5 py-2.5 bg-blue-700 hover:bg-blue-800 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md transition-all flex items-center gap-2">
+            <i class="fas fa-print"></i>
+            <span>Print 5cm × 2.5cm Roll Stickers</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- CRITICAL THERMAL PRINTER INSTRUCTIONS ALERT -->
+      <div class="p-4 bg-amber-50 border-2 border-amber-400 rounded-xl flex items-start gap-3.5 text-xs text-amber-950 shadow-sm">
+        <i class="fas fa-exclamation-triangle text-amber-600 text-xl mt-0.5"></i>
+        <div>
+          <strong class="font-bold text-sm text-amber-900 block mb-1">
+            ⚠️ වැදගත්: Print Window එකේ "Layout" එක "Landscape (තිරස්)" බව තහවුරු කරගන්න!
+          </strong>
+          <span class="block text-slate-800 leading-relaxed">
+            ඔබ <strong>Print</strong> බොත්තම ක්ලික් කළ පසු විවෘත වන Print Window එකේ <strong>Layout</strong> එක <strong>Landscape (තිරස්)</strong> ලෙස තෝරා තිබිය යුතුයි. 
+            (එය Portrait ලෙස තිබුණහොත් බ්‍රවුසරය මගින් ස්ටිකරය අංශක 90ක් කැරකී ස්ටිකර් 2ක් මැදින් කැපී print වේ. **Landscape** දැමූ විට හරියටම තනි ස්ටිකරය ඇතුළත නියම දිශාවට print වේ).
+          </span>
+          <div class="mt-2 text-slate-700 flex flex-wrap gap-4 font-mono text-[11px] bg-amber-100/70 p-2 rounded-lg border border-amber-200">
+            <span>&bull; Layout: <strong>Landscape (තිරස්)</strong></span>
+            <span>&bull; Paper Size: <strong>50mm x 25mm</strong> (හෝ 2" x 1")</span>
+            <span>&bull; Margins: <strong>None</strong></span>
+            <span>&bull; Headers & Footers: <strong>Uncheck</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview of Barcode Labels (Vertical Thermal Roll Mockup) -->
+      <div class="bg-slate-200/80 p-6 rounded-xl border border-slate-300 flex flex-col items-center justify-center">
+        <div class="text-xs font-bold text-slate-600 mb-3 uppercase tracking-wider flex items-center gap-2">
+          <i class="fas fa-scroll text-blue-700"></i>
+          <span>5cm × 2.5cm Sticker Roll Preview (රෝල් පෙරදසුන)</span>
+        </div>
+        <div id="barcodeSheetPreview" class="thermal-roll-strip">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: BARCODE SCANNER (Camera & USB Gun) -->
+    <div id="tab-scanner" class="tab-pane hidden space-y-6">
+      
+      <!-- Top Instructions -->
+      <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm">
+        <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+          <i class="fas fa-qrcode text-blue-600"></i>
+          <span>Barcode & QR Code Scanner</span>
+        </h3>
+        <p class="text-xs text-slate-500 mt-1">
+          Scan using your computer/laptop webcam or with any USB handheld barcode laser gun to instantly check stock, issue items, or view details.
+        </p>
+
+        <!-- USB Barcode Gun Fast Input -->
+        <div class="mt-4 p-4 bg-blue-50/60 rounded-xl border border-blue-200">
+          <label class="block text-xs font-bold text-blue-900 mb-1">
+            <i class="fas fa-keyboard mr-1"></i> USB Barcode Gun Input (Click here and scan barcode or press Enter):
+          </label>
+          <div class="flex items-center gap-2">
+            <input type="text" id="manualBarcodeInput" placeholder="Scan with USB barcode laser gun..." class="flex-1 px-4 py-2.5 text-sm bg-white border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 font-mono tracking-wider font-bold">
+            <button onclick="handleBarcodeScanned(document.getElementById('manualBarcodeInput').value)" class="px-5 py-2.5 bg-blue-700 hover:bg-blue-800 text-white rounded-lg text-xs font-bold transition-colors">
+              Lookup
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Camera Scanner Area & Scanned Result -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <!-- Camera Video Box -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm flex flex-col items-center">
+          <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">Webcam / Camera Scanner</h4>
+          <div id="qr-reader" class="w-full max-w-sm rounded-xl overflow-hidden border border-slate-200 bg-slate-50"></div>
+          <div class="text-[11px] text-slate-400 mt-2 text-center">
+            Point camera at the item's barcode or QR tag.
+          </div>
+        </div>
+
+        <!-- Scanned Item Information Card -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm flex flex-col justify-start">
+          <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">Scanned Item Details</h4>
+          <div id="scannedResultContainer" class="flex-1 flex items-center justify-center border-2 border-dashed border-slate-200 rounded-xl p-6 text-center text-slate-400 text-sm">
+            <div>
+              <i class="fas fa-barcode text-4xl mb-2 text-slate-300 block"></i>
+              Item details and instant stock actions will appear here upon scanning.
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- TAB 5: LOW STOCK NOTIFICATIONS -->
+    <div id="tab-lowstock" class="tab-pane hidden space-y-4">
+      <div class="bg-amber-50 border border-amber-200 p-5 rounded-xl flex items-center justify-between">
+        <div>
+          <h3 class="text-base font-bold text-amber-900 flex items-center gap-2">
+            <i class="fas fa-exclamation-triangle text-amber-600"></i>
+            <span>Low Stock & Re-Order Level Alerts</span>
+          </h3>
+          <p class="text-xs text-amber-800 mt-1">
+            Items that have reached their minimum safety threshold (Re-order level) or are completely out of stock.
+          </p>
+        </div>
+        <span id="lowStockTabCount" class="text-2xl font-black text-amber-900 px-4 py-1.5 bg-amber-200/60 rounded-xl">0</span>
+      </div>
+
+      <div id="lowStockItemsList" class="space-y-3">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+
+    <!-- TAB 6: SMARTCOOP REPORT IMPORTER -->
+    <div id="tab-import" class="tab-pane hidden space-y-6">
+      
+      <!-- Import Header Card -->
+      <div class="bg-white p-6 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+        <div class="flex items-center justify-between flex-wrap gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center text-2xl">
+              <i class="fas fa-file-import"></i>
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-slate-800">SmartCoop Main System PDF & Excel Report Importer</h3>
+              <p class="text-xs text-slate-500">
+                Upload the "Fixed Asset & Equipment Register" (දේපළ පිරියත උපකරණ ලේඛණය) exported from Nanosoft SmartCoop.
+              </p>
+            </div>
+          </div>
+
+          <!-- Quick One-Click Button to Load All 77 Bank Items from Images -->
+          <button onclick="loadAllSampleBankItemsToImport()" class="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center gap-1.5">
+            <i class="fas fa-bolt"></i>
+            <span>Load All 77 Bank Items from Images (One-Click)</span>
+          </button>
+        </div>
+
+        <!-- Drag & Drop Zone -->
+        <div class="border-2 border-dashed border-teal-300 hover:border-teal-500 bg-teal-50/30 hover:bg-teal-50/60 rounded-2xl p-8 text-center transition-all cursor-pointer relative mt-2">
+          <input type="file" id="pdfFileInput" accept=".pdf,.txt,.csv" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
+          <i class="fas fa-cloud-upload-alt text-4xl text-teal-600 mb-3 block"></i>
+          <div class="text-sm font-bold text-slate-800">Drag & Drop SmartCoop PDF Report Here, or Click to Browse</div>
+          <div class="text-xs text-slate-500 mt-1">Supports SmartCoop Asset Register PDF exports (.pdf) or text/csv</div>
+        </div>
+
+        <div id="importStatusMessage" class="hidden text-xs p-3 rounded-lg bg-blue-50 border border-blue-200"></div>
+
+        <!-- Manual Paste Option Accordion -->
+        <details class="text-xs text-slate-600 pt-2 border-t border-slate-100">
+          <summary class="cursor-pointer font-bold text-blue-700 hover:underline">
+            Alternative: Copy-Paste Text Lines from SmartCoop Report / PDF &rarr;
+          </summary>
+          <div class="mt-3 space-y-2">
+            <textarea id="rawTextImportArea" rows="4" placeholder="Paste table rows from SmartCoop PDF here (e.g. '1 කබඩ් 2000-01-01 1 1,946.79 ...')..." class="w-full p-3 font-mono text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
+            <div class="flex items-center gap-2">
+              <button onclick="parseSmartCoopRawText(document.getElementById('rawTextImportArea').value)" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-semibold">
+                Parse Text Lines
+              </button>
+              <button onclick="insertSampleSmartCoopText()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-medium">
+                Insert Sample Text Row
+              </button>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <!-- Preview Extracted Table -->
+      <div id="importPreviewContainer" class="hidden bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 flex-wrap gap-2">
+          <div>
+            <h4 class="font-bold text-slate-800 text-sm">Extracted Items Preview</h4>
+            <div id="importPreviewSummary" class="text-xs text-slate-500 mt-0.5"></div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="selectAllImportPreview(true)" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-medium">Select All</button>
+            <button onclick="selectAllImportPreview(false)" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-medium">Deselect All</button>
+            <button onclick="commitImport()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md transition-all flex items-center gap-2">
+              <i class="fas fa-check"></i>
+              <span>Confirm & Import Items to System</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto max-h-96">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead class="bg-slate-50 sticky top-0 border-b border-slate-200 font-bold text-slate-700">
+              <tr>
+                <th class="p-2 w-8 text-center">Select</th>
+                <th class="p-2 text-center">No.</th>
+                <th class="p-2">Description</th>
+                <th class="p-2">Category</th>
+                <th class="p-2 text-center">Purchase Date</th>
+                <th class="p-2 text-center">Qty</th>
+                <th class="p-2 text-right">Cost (Rs.)</th>
+                <th class="p-2 text-right">Net Value (Rs.)</th>
+              </tr>
+            </thead>
+            <tbody id="importPreviewTableBody" class="divide-y divide-slate-100">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TAB 7: STOCK IN / OUT TRANSACTIONS LOG -->
+    <div id="tab-transactions" class="tab-pane hidden space-y-4">
+      <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div>
+          <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+            <i class="fas fa-exchange-alt text-emerald-600"></i>
+            <span>Stock In / Out Movement History</span>
+          </h3>
+          <p class="text-xs text-slate-500 mt-0.5">Audit log of all stationery/asset allocations to staff, departments, and new purchases.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="openDailyMovementReportToday()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5">
+            <i class="fas fa-print"></i> Daily Movement Report (A4)
+          </button>
+          <button onclick="openStockInOutModal(AppState.items[0]?.id)" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5">
+            <i class="fas fa-plus"></i> Record Movement
+          </button>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50 text-[11px] font-bold text-slate-600 uppercase border-b border-slate-200">
+              <th class="p-3 text-center w-12">No.</th>
+              <th class="p-3">Date & Time</th>
+              <th class="p-3">Item Name</th>
+              <th class="p-3 text-center">Type</th>
+              <th class="p-3 text-center">Qty</th>
+              <th class="p-3">Recipient / Department</th>
+              <th class="p-3">Notes</th>
+            </tr>
+          </thead>
+          <tbody id="transactionsTableBody" class="divide-y divide-slate-100">
+            <!-- Rendered via JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 8: OFFICIAL A4 BANK REPORTS -->
+    <div id="tab-reports" class="tab-pane hidden space-y-4">
+      
+      <!-- Report Controls Bar -->
+      <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-yellow-50 text-amber-600 flex items-center justify-center font-bold text-xl">
+            <i class="fas fa-file-contract"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-800 text-base">Official A4 Bank Stock & Asset Report</h3>
+            <p class="text-xs text-slate-500">Official format matching SmartCoop bank register with Chairman, Secretary, Manager, and Auditor signatures.</p>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+          <select id="reportTypeSelect" onchange="handleReportTypeChange()" class="py-2 px-3 text-xs bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium">
+            <option value="asset_register">Fixed Asset & Equipment Register (දේපළ පිරියත උපකරණ ලේඛණය)</option>
+            <option value="daily_movement">Daily Stock Movement Report (දෛනික තොග සංචලන වාර්තාව)</option>
+            <option value="low_stock">Low Stock & Urgent Re-Order Report</option>
+            <option value="consumables">Stationery & Consumables Register</option>
+          </select>
+
+          <!-- Date Picker for Daily Movement Report -->
+          <div id="reportDateContainer" class="flex items-center gap-1.5">
+            <label for="reportDatePicker" class="text-xs font-bold text-slate-600 whitespace-nowrap">Date:</label>
+            <input type="date" id="reportDatePicker" onchange="renderReportsView()" class="py-2 px-3 text-xs bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium">
+          </div>
+
+          <button onclick="printOfficialReport()" class="px-5 py-2 bg-sanasa-900 hover:bg-slate-900 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md transition-all flex items-center gap-2 whitespace-nowrap">
+            <i class="fas fa-print"></i>
+            <span>Print A4 Report</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Report Paper Preview Box -->
+      <div id="reportPreviewArea" class="bg-slate-200/70 p-4 sm:p-8 rounded-xl border border-slate-300 overflow-x-auto">
+        <!-- Rendered via JS -->
+      </div>
+
+    </div>
+
+    <!-- TAB 9: SETTINGS & BACKUP -->
+    <div id="tab-settings" class="tab-pane hidden space-y-6">
+      
+      <div class="bg-white p-6 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+        <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+          <i class="fas fa-database text-blue-600"></i>
+          <span>Data Storage, Backup & Restore</span>
+        </h3>
+        <p class="text-xs text-slate-500">
+          All your inventory and asset data is safely stored in your browser's local storage. Regularly export a backup to secure your data.
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+          
+          <!-- Download Backup Card -->
+          <div class="p-4 bg-blue-50/60 border border-blue-200 rounded-xl space-y-2">
+            <div class="font-bold text-blue-900 text-sm flex items-center gap-2">
+              <i class="fas fa-download"></i> Download Backup (JSON)
+            </div>
+            <p class="text-xs text-blue-700">Downloads a complete backup file containing all items, barcodes, and stock logs.</p>
+            <button onclick="exportDataBackup()" class="w-full py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors">
+              Download JSON Backup
+            </button>
+          </div>
+
+          <!-- Restore Backup Card -->
+          <div class="p-4 bg-emerald-50/60 border border-emerald-200 rounded-xl space-y-2">
+            <div class="font-bold text-emerald-900 text-sm flex items-center gap-2">
+              <i class="fas fa-upload"></i> Restore from Backup
+            </div>
+            <p class="text-xs text-emerald-700">Upload a previously downloaded .json backup file to restore all your data.</p>
+            <label class="w-full block py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors text-center cursor-pointer">
+              <span>Select File & Restore</span>
+              <input type="file" id="backupFileInput" accept=".json" class="hidden">
+            </label>
+          </div>
+
+          <!-- Reset Default Card -->
+          <div class="p-4 bg-rose-50/60 border border-rose-200 rounded-xl space-y-2">
+            <div class="font-bold text-rose-900 text-sm flex items-center gap-2">
+              <i class="fas fa-undo"></i> Reset to Default Bank Data
+            </div>
+            <p class="text-xs text-rose-700">Restores the 77+ initial SmartCoop bank assets from the uploaded records.</p>
+            <button onclick="resetToDefaultDataset()" class="w-full py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors">
+              Reset to Initial Data
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Google Sheets Cloud Sync Card (GitHub Pages Ready) -->
+      <div class="bg-white p-6 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg font-bold border border-emerald-200 shadow-xs">
+              <i class="fas fa-file-excel"></i>
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                <span>Google Sheets Cloud Sync (GitHub Pages Ready)</span>
+                <span class="text-[10px] bg-blue-100 text-blue-800 font-extrabold px-2 py-0.5 rounded-full border border-blue-200">Cloud DB</span>
+              </h3>
+              <p class="text-xs text-slate-500 mt-0.5">
+                GitHub Pages මගින් Host කරන විට ඔබගේ සියලුම දත්ත Google Sheets ගිණුමට ස්වයංක්‍රීයව Save / Sync කර තබා ගැනීමට මෙම පහසුකම භාවිතා කරන්න.
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 self-start">
+            <button onclick="syncFromCloud()" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer" title="Pull latest data from Google Sheets">
+              <i class="fas fa-cloud-download-alt text-blue-600"></i> Pull from Sheet
+            </button>
+            <button onclick="syncToCloud()" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer" title="Push all local data to Google Sheets">
+              <i class="fas fa-cloud-upload-alt text-emerald-600"></i> Push to Sheet
+            </button>
+          </div>
+        </div>
+
+        <!-- Connection Status & Auto-Sync Controls -->
+        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <div id="gasSyncStatusInfo" class="text-xs font-semibold flex items-center gap-2">
+              <span class="inline-flex items-center gap-1.5 text-emerald-700 font-bold">
+                <i class="fas fa-check-circle"></i> Google Sheets Cloud Backend Active &amp; Connected
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-0.5">
+              සියලුම භාණ්ඩ එකතු කිරීම්, සංස්කරණය කිරීම් සහ තොග පිටවීම් සෘජුවම Google Sheets වෙත Auto-Sync වේ.
+            </p>
+          </div>
+
+          <div class="flex items-center gap-2 shrink-0">
+            <button onclick="syncFromCloud()" class="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 cursor-pointer">
+              <i class="fas fa-sync-alt"></i>
+              <span>Sync Now</span>
+            </button>
+            <button onclick="syncToCloud()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 cursor-pointer">
+              <i class="fas fa-upload"></i>
+              <span>Push All</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Department Management Card -->
+      <div class="bg-white p-6 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+          <div>
+            <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+              <i class="fas fa-sitemap text-blue-600"></i>
+              <span>Department Management (දෙපාර්තමේන්තු කළමනාකරණය)</span>
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">
+              Manage departments for generating barcodes in <code>GCSC/DEPARTMENT/0001</code> format.
+            </p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 self-start">
+            <button onclick="resequenceDivisionBarcodes()" class="px-3.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5" title="Clean gaps and re-sequence 0001, 0002... per division">
+              <i class="fas fa-sort-numeric-down text-emerald-600"></i> Re-sequence Codes (0001, 0002...)
+            </button>
+            <button onclick="upgradeAllBarcodesToGCSC()" class="px-3.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5">
+              <i class="fas fa-sync-alt text-blue-600"></i> Convert all GSB barcodes to GCSC
+            </button>
+          </div>
+        </div>
+
+        <!-- Add Department Form -->
+        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+          <label class="block text-xs font-bold text-slate-700 mb-2">
+            <i class="fas fa-plus-circle text-blue-600 mr-1"></i> Add New Department (නව දෙපාර්තමේන්තුවක් එකතු කරන්න)
+          </label>
+          <div class="flex flex-col sm:flex-row gap-2">
+            <input type="text" id="newDeptCode" placeholder="Code (e.g. ADM, ACC, CSH, IT, LON)" class="w-full sm:w-48 px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono uppercase font-bold" maxlength="8">
+            <input type="text" id="newDeptName" placeholder="Department Name (e.g. Administration, Accounts, Loans)" class="flex-1 px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-medium">
+            <button onclick="addDepartment()" class="px-5 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-lg text-xs font-bold shadow-sm transition-colors whitespace-nowrap flex items-center justify-center gap-1.5">
+              <i class="fas fa-plus"></i> Add Department
+            </button>
+          </div>
+          <span class="text-[11px] text-slate-500 mt-1.5 block">Department Code is used in barcodes: <code>GCSC/{CODE}/0001</code></span>
+        </div>
+
+        <!-- Department List -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-2">
+            Current Department List (දැනට පවතින දෙපාර්තමේන්තු ලැයිස්තුව):
+          </label>
+          <div id="departmentListContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+    </div> <!-- /flex-1 overflow-hidden -->
+  </div> <!-- /macos-window-frame -->
+
+  <!-- MODAL: ADD / EDIT ITEM -->
+  <div id="itemModal" class="hidden no-print fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-200">
+      
+      <!-- Modal Header -->
+      <div class="p-5 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
+        <h3 id="modalItemTitle" class="text-base font-bold text-slate-800">Add New Inventory Item</h3>
+        <button onclick="closeItemModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body / Form -->
+      <form id="itemForm" class="p-6 space-y-4">
+        <input type="hidden" id="editItemId">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          <div class="md:col-span-2">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Item Description / Name *</label>
+            <input type="text" id="itemName" required placeholder="e.g. Steel Cupboard (වානේ කබඩ්), Office Desk, A4 Paper..." class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">
+              <i class="fas fa-building text-blue-600 mr-1"></i> Department (අදාළ දෙපාර්තමේන්තුව) *
+            </label>
+            <select id="itemDepartment" onchange="onDeptChange()" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-semibold bg-blue-50/40">
+              <!-- Populated via JS -->
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Category *</label>
+            <select id="itemCategory" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+              <option value="ගොඩනැගිලි විස්තර">Buildings (ගොඩනැගිලි)</option>
+              <option value="නාම පුවරු විස්තර">Nameboards (නාම පුවරු)</option>
+              <option value="කාර්යාල උපකරණ" selected>Office Equipment (කාර්යාල උපකරණ)</option>
+              <option value="ලිපිද්‍රව්‍ය හා පරිභෝජන තොග">Stationery & Consumables (ලිපිද්‍රව්‍ය)</option>
+              <option value="ඉලෙක්ට්‍රොනික හා පරිගණක">IT & Electronics</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Item Type</label>
+            <select id="itemType" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+              <option value="fixed_asset">Fixed Asset (ස්ථාවර වත්කම්)</option>
+              <option value="consumable">Consumable / Stationery (පරිභෝජන)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Barcode Number *</label>
+            <div class="relative">
+              <input type="text" id="itemBarcode" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono uppercase">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Purchase Date</label>
+            <input type="date" id="itemPurchaseDate" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Quantity *</label>
+            <input type="number" id="itemQty" required min="0" value="1" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Unit of Measure</label>
+            <input type="text" id="itemUnit" placeholder="Units, Reams, Books, Sets..." value="Units" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Unit Cost (Rs.)</label>
+            <input type="number" step="0.01" id="itemCost" value="0.00" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Net Book Value (Rs.)</label>
+            <input type="number" step="0.01" id="itemNetValue" value="1.00" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-amber-700 mb-1">Low Stock Alert Level (Re-order Level)</label>
+            <input type="number" id="itemReorder" min="0" value="0" class="w-full px-3 py-2 text-sm border border-amber-300 bg-amber-50/50 rounded-lg focus:ring-2 focus:ring-amber-500">
+            <span class="text-[10px] text-slate-400">Trigger low-stock warning when quantity drops below this</span>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Location / Room</label>
+            <input type="text" id="itemLocation" placeholder="Main Hall, Manager Office, Cash Counter, Storage..." class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Condition</label>
+            <select id="itemCondition" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+              <option value="Good Condition">Good Condition (හොඳ තත්ත්වයේ)</option>
+              <option value="In Use">In Active Use (පාවිච්චි කෙරේ)</option>
+              <option value="Needs Maintenance">Needs Maintenance (නඩත්තු අවශ්‍යයි)</option>
+              <option value="Damaged">Damaged / Disposed (අබලන්)</option>
+            </select>
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Additional Notes</label>
+            <textarea id="itemNotes" rows="2" placeholder="Model number, vendor, serial number, or warranty details..." class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
+          </div>
+
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+          <button type="button" onclick="closeItemModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors">
+            Cancel
+          </button>
+          <button type="submit" class="px-6 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-xl text-xs font-bold shadow-md transition-all">
+            Save Item
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- MODAL: VIEW ITEM BARCODE & QR (5cm x 2.5cm ROLL STICKER) -->
+  <div id="viewBarcodeModal" class="hidden no-print fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 text-center border border-slate-200">
+      
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+        <div class="flex items-center gap-2">
+          <span class="text-[11px] font-bold tracking-widest uppercase text-blue-900 bg-blue-50 py-1 px-3 rounded-full border border-blue-200">
+            GALAPITIYAGAMA SANASA BANK
+          </span>
+          <span class="text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+            5cm × 2.5cm Roll
+          </span>
+        </div>
+        <button onclick="closeViewBarcodeModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <h3 id="barcodeModalItemName" class="text-base font-bold text-slate-800">Item Name</h3>
+      <div class="text-xs text-slate-500 mt-0.5 flex items-center justify-center gap-2">
+        <span id="barcodeModalItemCategory">Office Equipment</span>
+        <span>&bull;</span>
+        <span id="barcodeModalItemLocation">Main Office</span>
+      </div>
+
+      <!-- Real 5cm x 2.5cm Roll Sticker Visual Preview -->
+      <div class="my-5 p-5 bg-slate-100 rounded-2xl border border-slate-200 flex flex-col items-center justify-center">
+        <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+          5cm × 2.5cm Sticker Preview (English Label)
+        </div>
+        <div id="modalStickerPreview" class="thermal-50x25-label preview-mode">
+          <div class="thermal-label-header">GALAPITIYAGAMA SANASA BANK</div>
+          <div id="modalStickerTitle" class="thermal-label-title">Item Name</div>
+          <div class="thermal-barcode-wrapper">
+            <svg id="barcodeModalSvg"></svg>
+          </div>
+          <div class="thermal-label-footer">
+            <span id="modalStickerBarcode" class="thermal-barcode-text"></span>
+            <span id="modalStickerSub" class="thermal-barcode-sub"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Print Copies Counter & Orientation -->
+      <div class="flex flex-wrap items-center justify-center gap-3 mb-3 bg-blue-50/70 p-3 rounded-xl border border-blue-200">
+        <div class="flex items-center gap-2">
+          <label class="text-xs font-bold text-blue-900">පිටපත්:</label>
+          <div class="flex items-center">
+            <button type="button" onclick="adjustModalCopies(-1)" class="w-7 h-7 rounded-l-lg bg-blue-200 hover:bg-blue-300 font-bold text-blue-900 flex items-center justify-center text-sm">-</button>
+            <input type="number" id="modalStickerCopies" value="1" min="1" max="100" class="w-12 h-7 text-center font-bold border-y border-blue-300 focus:outline-none text-xs bg-white">
+            <button type="button" onclick="adjustModalCopies(1)" class="w-7 h-7 rounded-r-lg bg-blue-200 hover:bg-blue-300 font-bold text-blue-900 flex items-center justify-center text-sm">+</button>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <label class="text-xs font-bold text-blue-900">දිශාව:</label>
+          <select id="modalOrientationSelect" class="bg-white border border-blue-300 rounded px-2 py-1 font-bold text-blue-900 text-xs focus:ring-1 focus:ring-blue-500">
+            <option value="landscape">Landscape (තිරස් - නියම දිශාව)</option>
+            <option value="portrait">Portrait (සිරස්)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Quick Orientation Tip Banner -->
+      <div class="mb-4 p-2.5 bg-amber-50 border border-amber-300 rounded-xl text-left text-xs text-amber-900">
+        <div class="font-bold flex items-center gap-1.5 text-amber-950 mb-0.5">
+          <i class="fas fa-exclamation-circle text-amber-600"></i>
+          <span>Print window එකේ Layout එක Landscape තෝරන්න!</span>
+        </div>
+        <p class="text-slate-700 text-[11px] leading-tight">
+          Print Dialog එක විවෘත වූ පසු <strong>Layout</strong> එක <strong>Landscape</strong> ලෙස තිබිය යුතුයි. එවිට ස්ටිකර් 2කට නොයා තනි 5cm × 2.5cm ස්ටිකරය මත ලස්සනට print වේ.
+        </p>
+      </div>
+
+      <div class="flex items-center justify-center gap-3">
+        <button onclick="printCurrentModalItemRoll()" class="px-5 py-2.5 bg-blue-700 hover:bg-blue-800 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md transition-all flex items-center gap-2">
+          <i class="fas fa-print"></i>
+          <span>Print 5cm × 2.5cm Sticker</span>
+        </button>
+        <button onclick="closeViewBarcodeModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors">
+          Close
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL: STOCK IN / OUT TRANSACTION -->
+  <div id="stockInOutModal" class="hidden no-print fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
+      
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+        <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+          <i class="fas fa-exchange-alt text-emerald-600"></i>
+          <span>Stock Movement (In / Out)</span>
+        </h3>
+        <button onclick="closeStockInOutModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <form id="stockInOutForm" class="space-y-4">
+        <input type="hidden" id="stockInOutItemId">
+
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+          <div id="stockInOutItemName" class="font-bold text-slate-800 text-sm">Item Name</div>
+          <div class="text-xs text-slate-500 flex justify-between mt-1">
+            <span>Barcode: <strong id="stockInOutBarcode" class="font-mono text-slate-700"></strong></span>
+            <span>Current Stock: <strong id="stockInOutCurrentQty" class="text-emerald-700 font-bold"></strong></span>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Movement Type *</label>
+          <select id="stockInOutType" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-bold">
+            <option value="OUT" class="text-amber-700">Issue to Staff / Department (OUT)</option>
+            <option value="IN" class="text-emerald-700">Receive / Purchase Stock (IN)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Quantity *</label>
+          <input type="number" id="stockInOutQty" required min="1" value="1" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-bold">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Recipient / Target Department *</label>
+          <input type="text" id="stockInOutRecipient" required placeholder="e.g. Manager Office, Counter 1, Field Officer, Storage..." class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Notes</label>
+          <input type="text" id="stockInOutNotes" placeholder="e.g. Monthly bank operations, audit replenishment..." class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeStockInOutModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors">
+            Cancel
+          </button>
+          <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md transition-all">
+            Confirm Movement
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- PRINT ONLY CONTAINER (Hidden on screen, shown when window.print() is called) -->
+  <div id="printableArea" class="print-only-container hidden"></div>
+
+  <!-- Scripts -->
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
