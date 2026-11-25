@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" class="h-full bg-slate-100">
 <head>
   <meta charset="UTF-8">
@@ -256,6 +256,10 @@
 
           <button data-tab="reports" class="macos-dock-icon nav-btn" onclick="switchTab('reports')" title="Official A4 Reports (වාර්තා)">
             <i class="fas fa-print text-base text-blue-600"></i>
+          </button>
+
+          <button data-tab="stationery" class="macos-dock-icon nav-btn" onclick="switchTab('stationery')" title="Office Stationery (කාර්යාල ලිපිද්‍රව්‍ය)">
+            <i class="fas fa-clipboard-list text-base text-purple-600"></i>
           </button>
         </div>
 
@@ -806,6 +810,94 @@
       </div>
     </div>
 
+    <!-- TAB: OFFICE STATIONERY (ලිපිද්‍රව්‍ය) -->
+    <div id="tab-stationery" class="tab-pane hidden space-y-4">
+
+      <!-- Header Card -->
+      <div class="bg-white p-5 rounded-xl border border-purple-200/80 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center text-2xl border border-purple-200">
+            <i class="fas fa-clipboard-list"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+              <span>Office Stationery Module</span>
+              <span class="text-xs bg-purple-100 text-purple-800 font-bold px-2 py-0.5 rounded-full border border-purple-200">ලිපිද්‍රව්‍ය</span>
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">Manage and issue office stationery items — requires Manager PIN authorization (කළමනාකරු PIN අනුමැතිය).</p>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="openAddItemModal(); document.getElementById('itemCategory').value='ලිපිද්‍රව්‍ය හා පරිභෝජන තොග'; document.getElementById('itemType').value='consumable';" class="px-3.5 py-2 bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-300 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
+            <i class="fas fa-plus text-purple-600"></i> Add Stationery Item
+          </button>
+          <button onclick="openStationeryIssueModal()" class="px-4 py-2 bg-purple-700 hover:bg-purple-800 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center gap-1.5">
+            <i class="fas fa-paper-plane"></i> Issue Stationery
+          </button>
+        </div>
+      </div>
+
+
+      <!-- Stationery Stock Table -->
+      <div class="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
+        <div class="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
+          <h4 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+            <i class="fas fa-boxes text-purple-600"></i> Stationery Stock Overview
+          </h4>
+          <span class="text-xs text-slate-500" id="stationeryItemCount">0 items</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-purple-50/70 border-b border-purple-100 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                <th class="p-3 text-center w-10">No.</th>
+                <th class="p-3">Item Name & Barcode</th>
+                <th class="p-3">Supplier (සැපයුම්කරු)</th>
+                <th class="p-3 text-center">Unit</th>
+                <th class="p-3 text-center">In Stock</th>
+                <th class="p-3 text-center">Reorder Level</th>
+                <th class="p-3">Last Issued To</th>
+                <th class="p-3 text-center w-40">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="stationeryTableBody" class="divide-y divide-slate-100 text-sm">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Recent Issuances Log -->
+      <div class="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
+        <div class="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
+          <h4 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+            <i class="fas fa-history text-purple-600"></i> Recent Issuances (මෑත නිකුත් කිරීම්)
+          </h4>
+          <span class="text-xs text-slate-500">Last 10 records</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-100 text-[11px] font-bold text-slate-500 uppercase">
+                <th class="p-3 text-center w-10">No.</th>
+                <th class="p-3">Date &amp; Time</th>
+                <th class="p-3">Item</th>
+                <th class="p-3 text-center">Qty</th>
+                <th class="p-3">Recipient (ලබාගත් නිලධාරී)</th>
+                <th class="p-3">Department</th>
+                <th class="p-3">Authorized By (බලයලත් නිලධාරී)</th>
+                <th class="p-3">Purpose</th>
+              </tr>
+            </thead>
+            <tbody id="stationeryIssueLogBody" class="divide-y divide-slate-100 text-xs">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
     <!-- TAB 6: SMARTCOOP REPORT IMPORTER -->
     <div id="tab-import" class="tab-pane hidden space-y-6">
       
@@ -1135,6 +1227,41 @@
         </div>
       </div>
 
+      <!-- Stationery Manager PIN Card -->
+      <div class="bg-white p-6 rounded-xl border border-purple-200/80 shadow-sm space-y-4">
+        <div class="flex items-center gap-3 border-b border-purple-100 pb-3">
+          <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center text-lg font-bold border border-purple-200">
+            <i class="fas fa-lock"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+              <span>Stationery Manager PIN</span>
+              <span class="text-xs bg-purple-100 text-purple-800 font-bold px-2 py-0.5 rounded-full border border-purple-200">Security</span>
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">PIN required to authorize stationery stock issuances (ලිපිද්‍රව්‍ය නිකුත් කිරීමට PIN අවශ්‍යයි).</p>
+          </div>
+        </div>
+
+        <div class="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-3">
+          <div class="text-xs font-bold text-amber-900 flex items-center gap-1.5">
+            <i class="fas fa-info-circle text-amber-600"></i>
+            Default PIN is <code class="bg-amber-200 px-1 rounded">1234</code>. Change it below for security.
+          </div>
+          <div class="flex flex-col sm:flex-row gap-2">
+            <div class="relative flex-1">
+              <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-amber-500">
+                <i class="fas fa-key text-sm"></i>
+              </span>
+              <input type="password" id="newManagerPinInput" maxlength="6" placeholder="Enter new 4-6 digit PIN..." class="w-full pl-10 pr-4 py-2.5 text-sm border-2 border-amber-300 bg-white rounded-lg focus:ring-2 focus:ring-purple-500 font-mono tracking-widest font-bold" autocomplete="new-password">
+            </div>
+            <button onclick="saveStationeryManagerPin()" class="px-5 py-2.5 bg-purple-700 hover:bg-purple-800 text-white rounded-lg text-xs font-bold shadow-sm transition-colors flex items-center gap-2 whitespace-nowrap">
+              <i class="fas fa-save"></i> Save PIN
+            </button>
+          </div>
+          <p class="text-[10px] text-amber-700">Current PIN status: <span id="currentPinStatus" class="font-bold text-purple-800">Checking...</span></p>
+        </div>
+      </div>
+
     </div>
 
   </main>
@@ -1202,6 +1329,13 @@
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">Purchase Date</label>
             <input type="date" id="itemPurchaseDate" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">
+              <i class="fas fa-truck text-blue-600 mr-1"></i> Supplier / Vendor (ලබාගත් සැපයුම්කරු)
+            </label>
+            <input type="text" id="itemSupplier" placeholder="e.g. Atlas Axillia, Samudra, Govt Press, Nanosoft..." class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
           </div>
 
           <div>
@@ -1352,6 +1486,93 @@
     </div>
   </div>
 
+  <!-- MODAL: STATIONERY ISSUE (Manager PIN Required) -->
+  <div id="stationeryIssueModal" class="hidden no-print fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-purple-200 overflow-hidden">
+
+      <!-- Modal Header -->
+      <div class="bg-gradient-to-r from-purple-800 to-purple-600 p-5 flex items-center justify-between">
+        <div>
+          <div class="text-xs font-bold text-purple-200 uppercase tracking-widest flex items-center gap-1.5 mb-1">
+            <i class="fas fa-lock text-purple-300"></i> Manager Authorization Required
+          </div>
+          <h3 class="text-base font-bold text-white">Issue Stationery to Staff</h3>
+          <p class="text-xs text-purple-200 mt-0.5">🔐 කළමනාකරු PIN අනුමැතිය අවශ්‍යයි</p>
+        </div>
+        <button onclick="closeStationeryIssueModal()" class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-colors">
+          <i class="fas fa-times text-sm"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <form id="stationeryIssueForm" class="p-6 space-y-4" onsubmit="confirmStationeryIssue(event)">
+
+        <!-- Item selector -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1"><i class="fas fa-box text-purple-600 mr-1"></i>Stationery Item *</label>
+            <select id="stnIssueItemId" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 bg-purple-50/30">
+              <!-- Populated by JS -->
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1"><i class="fas fa-sort-numeric-up text-purple-600 mr-1"></i>Quantity *</label>
+            <input type="number" id="stnIssueQty" required min="1" value="1" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 font-bold">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1"><i class="fas fa-user text-purple-600 mr-1"></i>Recipient Name (ලබාගත් නිලධාරියා) *</label>
+            <input type="text" id="stnIssueRecipient" required placeholder="Staff member name..." class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1"><i class="fas fa-sitemap text-purple-600 mr-1"></i>Department (අංශය) *</label>
+            <select id="stnIssueDept" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+              <!-- Populated by JS -->
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1"><i class="fas fa-user-shield text-purple-600 mr-1"></i>Authorized Officer (බලයලත් නිලධාරියා) *</label>
+          <input type="text" id="stnAuthorizedOfficer" required placeholder="e.g. ශාඛා කළමනාකරු / Branch Manager / Assistant Manager" value="Branch Manager (කළමනාකරු)" class="w-full px-3 py-2 text-sm border border-purple-200 bg-purple-50/30 rounded-lg focus:ring-2 focus:ring-purple-500 font-semibold text-slate-800">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1"><i class="fas fa-sticky-note text-purple-600 mr-1"></i>Purpose / Notes (අවශ්‍යතාවය / සටහන්)</label>
+          <input type="text" id="stnIssuePurpose" placeholder="e.g. Monthly bank operations, audit prep, counter use..." class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+        </div>
+
+        <!-- Manager PIN -->
+        <div class="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
+          <label class="block text-xs font-bold text-amber-900 mb-1 flex items-center gap-1.5">
+            <i class="fas fa-lock text-amber-600"></i> Manager PIN (කළමනාකරු PIN) *
+          </label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-amber-500">
+              <i class="fas fa-key text-sm"></i>
+            </span>
+            <input type="password" id="stnManagerPin" required maxlength="6" placeholder="Enter manager PIN..." class="w-full pl-10 pr-4 py-2.5 text-sm border-2 border-amber-300 bg-white rounded-lg focus:ring-2 focus:ring-amber-500 font-mono tracking-widest font-bold" autocomplete="off">
+          </div>
+          <div id="stnPinError" class="hidden text-xs font-bold text-rose-700 flex items-center gap-1.5 mt-1">
+            <i class="fas fa-exclamation-circle"></i> <span id="stnPinErrorMsg">Invalid PIN! Access denied.</span>
+          </div>
+        </div>
+
+        <!-- Footer Buttons -->
+        <div class="flex items-center justify-end gap-3 pt-2 border-t border-slate-100">
+          <button type="button" onclick="closeStationeryIssueModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors">
+            Cancel
+          </button>
+          <button type="submit" class="px-5 py-2.5 bg-purple-700 hover:bg-purple-800 text-white rounded-xl text-xs font-bold shadow-md transition-all flex items-center gap-2">
+            <i class="fas fa-paper-plane"></i> Authorize &amp; Issue Stock
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- MODAL: STOCK IN / OUT TRANSACTION -->
   <div id="stockInOutModal" class="hidden no-print fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
     <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
@@ -1396,6 +1617,11 @@
         </div>
 
         <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1"><i class="fas fa-truck text-emerald-600 mr-1"></i>Supplier / Source (ලබාගත් සැපයුම්කරු - IN සඳහා)</label>
+          <input type="text" id="stockInOutSupplier" placeholder="e.g. Atlas Axillia, Samudra, Govt Press, Nanosoft..." class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">Notes</label>
           <input type="text" id="stockInOutNotes" placeholder="e.g. Monthly bank operations, audit replenishment..." class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
         </div>
@@ -1419,5 +1645,6 @@
   <!-- Scripts -->
   <script src="data.js"></script>
   <script src="app.js"></script>
+  <script src="stationery_module.js"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Galapitiyagama Sanasa Bank - Inventory & Asset Management System
  * Galapitiyagama Thrift & Credit Co-operative Society Ltd
  * Main Application Logic (English UI with Sinhala Asset Support & Robust SmartCoop PDF Parser)
@@ -18,7 +18,8 @@ const AppState = {
   barcodeRollDepartmentFilter: 'all',
   scannerInstance: null,
   isAudioEnabled: true,
-  currentModalItem: null
+  currentModalItem: null,
+  stationeryIssues: []
 };
 
 // Storage Keys
@@ -249,6 +250,9 @@ function loadData() {
     }
   });
   if (needsSave) saveItems();
+
+  // Load stationery module data
+  if (typeof loadStationeryData === 'function') loadStationeryData();
 }
 
 function saveItems(syncCloud = true) {
@@ -524,6 +528,7 @@ function switchTab(tabId) {
   if (tabId === 'transactions') renderTransactionsTable();
   if (tabId === 'lowstock') renderLowStockView();
   if (tabId === 'settings') renderDepartmentList();
+  if (tabId === 'stationery' && typeof renderStationeryTab === 'function') renderStationeryTab();
 }
 
 // --- SOUND NOTIFICATION (Synthesized Web Audio API) ---
@@ -1078,6 +1083,7 @@ function openAddItemModal() {
   document.getElementById('itemDepartment').value = activeDept;
   document.getElementById('itemBarcode').value = generateGcscBarcode(activeDept);
   document.getElementById('itemPurchaseDate').value = new Date().toISOString().split('T')[0];
+  if (document.getElementById('itemSupplier')) document.getElementById('itemSupplier').value = '';
 
   document.getElementById('itemModal').classList.remove('hidden');
 }
@@ -1111,6 +1117,7 @@ function openEditItemModal(id) {
   document.getElementById('itemType').value = item.type || 'fixed_asset';
   document.getElementById('itemBarcode').value = item.barcode;
   document.getElementById('itemPurchaseDate').value = item.purchaseDate || '';
+  if (document.getElementById('itemSupplier')) document.getElementById('itemSupplier').value = item.supplier || '';
   document.getElementById('itemQty').value = item.qty;
   document.getElementById('itemUnit').value = item.unit || 'Units';
   document.getElementById('itemCost').value = item.cost;
@@ -1148,6 +1155,7 @@ function saveItemForm(e) {
   const department = document.getElementById('itemDepartment')?.value || 'OAD';
   const barcode = document.getElementById('itemBarcode').value.trim().toUpperCase();
   const purchaseDate = document.getElementById('itemPurchaseDate').value;
+  const supplier = document.getElementById('itemSupplier') ? document.getElementById('itemSupplier').value.trim() : '';
   const qty = Number(document.getElementById('itemQty').value) || 0;
   const unit = document.getElementById('itemUnit').value.trim();
   const cost = Number(document.getElementById('itemCost').value) || 0;
@@ -1175,7 +1183,7 @@ function saveItemForm(e) {
     if (index !== -1) {
       AppState.items[index] = {
         ...AppState.items[index],
-        name, category, type, department, barcode, purchaseDate, qty, unit, cost, netValue,
+        name, category, type, department, barcode, purchaseDate, supplier, qty, unit, cost, netValue,
         reorderLevel, location, condition, notes
       };
       showToast('Item updated successfully.', 'success');
@@ -1184,7 +1192,7 @@ function saveItemForm(e) {
     // Create new
     const newItem = {
       id: 'GCSC-' + Date.now().toString(36).toUpperCase(),
-      name, category, type, department, barcode, purchaseDate, qty, unit, cost,
+      name, category, type, department, barcode, purchaseDate, supplier, qty, unit, cost,
       purchasesPeriod: cost * qty,
       totalCost: cost * qty,
       accumulatedDepr: 0.00,
@@ -1904,6 +1912,9 @@ function openStockInOutModal(itemId) {
   document.getElementById('stockInOutQty').value = 1;
   document.getElementById('stockInOutRecipient').value = '';
   document.getElementById('stockInOutNotes').value = '';
+  if (document.getElementById('stockInOutSupplier')) {
+    document.getElementById('stockInOutSupplier').value = item.supplier || '';
+  }
 
   document.getElementById('stockInOutModal').classList.remove('hidden');
 }
@@ -1918,6 +1929,7 @@ function saveStockInOut(e) {
   const type = document.getElementById('stockInOutType').value; // 'OUT' or 'IN'
   const qty = Number(document.getElementById('stockInOutQty').value) || 0;
   const recipient = document.getElementById('stockInOutRecipient').value.trim();
+  const supplierInput = document.getElementById('stockInOutSupplier') ? document.getElementById('stockInOutSupplier').value.trim() : '';
   const notes = document.getElementById('stockInOutNotes').value.trim();
 
   if (qty <= 0) {
@@ -1937,13 +1949,23 @@ function saveStockInOut(e) {
     return;
   }
 
-  // Update item quantity
-  if (type === 'OUT') item.qty = currentQty - qty;
-  else item.qty = currentQty + qty;
+  // Update item quantity and supplier if restocked
+  if (type === 'OUT') {
+    item.qty = currentQty - qty;
+  } else {
+    item.qty = currentQty + qty;
+    if (supplierInput) {
+      item.supplier = supplierInput;
+    }
+  }
 
   // Record transaction
   const now = new Date();
   const dateStr = now.toISOString().replace('T', ' ').substring(0, 16);
+  let finalNotes = notes;
+  if (supplierInput && type === 'IN') {
+    finalNotes = finalNotes ? `${finalNotes} (Supplier: ${supplierInput})` : `Supplier: ${supplierInput}`;
+  }
   const tx = {
     id: 'TX-' + Date.now().toString(36).toUpperCase(),
     barcode: item.barcode,
@@ -1951,9 +1973,10 @@ function saveStockInOut(e) {
     type,
     qty,
     date: dateStr,
-    recipient: recipient || (type === 'OUT' ? 'Office Use' : 'Main Storage'),
+    recipient: recipient || (type === 'OUT' ? 'Office Use' : (supplierInput || 'Main Storage')),
     issuedBy: 'Authorized Officer',
-    notes
+    supplier: supplierInput || item.supplier || '',
+    notes: finalNotes
   };
 
   AppState.transactions.unshift(tx);
@@ -2891,4 +2914,5 @@ function renderAll() {
   if (AppState.activeTab === 'reports') renderReportsView();
   if (AppState.activeTab === 'transactions') renderTransactionsTable();
   if (AppState.activeTab === 'settings') renderDepartmentList();
+  if (AppState.activeTab === 'stationery' && typeof renderStationeryTab === 'function') renderStationeryTab();
 }
